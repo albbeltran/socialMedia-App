@@ -58,7 +58,7 @@ async function home(req,res) {
     if(req.session.user) {
         // fetch feed of posts for current user
         let posts = await Post.getFeed(req.session.user._id)
-        res.render('home-dashboard', {posts: posts})
+        res.render('home-dashboard', {posts: posts, title: 'Home'})
     } else {
         res.render('home-guest', {regErrors: req.flash('regErrors')})
     }
@@ -83,6 +83,7 @@ async function profilePostsScreen(req, res) {
         let posts = await Post.findByAuthorId(req.profileUser._id)
 
         res.render('profile', {
+            title: `Profile for ${req.profileUser.username}`,
             currentPage: "posts",
             posts: posts,
             followers: req.followerCount,
@@ -104,6 +105,7 @@ async function profileFollowersScreen(req, res) {
         let followers = await Follow.getFollowersById(req.profileUser._id)
 
         res.render('profile-followers', {
+            title: `Profile for ${req.profileUser.username}`,
             currentPage: "followers",
             posts: req.postCount,
             followers: followers,
@@ -125,6 +127,7 @@ async function profileFollowingScreen(req, res) {
         let following = await Follow.getFollowingById(req.profileUser._id)
 
         res.render('profile-following', {
+            title: `Profile for ${req.profileUser.username}`,
             currentPage: "following",
             posts: req.postCount,
             followers: req.followerCount,

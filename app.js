@@ -51,5 +51,33 @@ app.set('view engine','ejs')
 
 app.use('/', router)
 
-//Exporting the app
-module.exports = app
+// Create a server with the app as it handler to leverage the sockets
+const server = require('http').createServer(app)
+const io = require('socket.io')(server)
+
+// Make our express session data available from within the context of socket
+io.use(function(socket, next) {
+    sessionOptions(socket.request, socket.request.res, next)
+})
+
+io.on('connection', function(socket) {
+    // only if the user is logged in
+    if(socket.request.session.user) {
+        let user = socket.request.session.user
+
+        // send the principal user data when the connection is established
+        socket.emit('welcome', {username: user.username, avatar: user.avatar})
+
+        socket.on('chatMessageFromBrowser', function(data) {
+            // Emit an event to all connected users except the socket connection that sent the data
+            socket.broadcast.emit('chatMessageFromServer', {
+                message: sanitizeHTML(data.message, {allowedTags: [], allowedAttributes: {}}),
+                username: user.username,
+                avatar: user.avatar
+            })
+        })
+    }
+})
+
+//Exporting the server
+module.exports = server
