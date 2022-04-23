@@ -1,0 +1,8 @@
+<!--Show flash messages-->
+<% errors.forEach(function(errormsg){ %>
+<div class="alert alert-danger text-center"><%= errormsg %></div>
+<% }) %>
+
+<% success.forEach(function(errormsg){ %>
+<div class="alert alert-success text-center"><%= errormsg %></div>
+<% }) %>

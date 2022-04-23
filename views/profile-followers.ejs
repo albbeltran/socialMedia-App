@@ -1,0 +1,23 @@
+<%- include('partials/head') %>
+
+<body>
+  <%- include('partials/header') %>
+
+  <div class="container py-md-5 container--narrow">
+
+  <!--Show registration errors-->
+  <%- include('partials/flash') %>
+
+  <%- include('partials/profile-shared') %>
+
+  <div class="list-group">
+    <% followers.forEach(function(follower) { %>
+      <a href="/profile/<%= follower.username %>" class="list-group-item list-group-item-action">
+        <img class="avatar-tiny" src="<%= follower.avatar %>">
+        <%= follower.username %>
+    </a>
+    <% }) %>
+  </div>
+  </div>
+
+  <%- include('partials/footer') %>
