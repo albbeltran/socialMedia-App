@@ -1,6 +1,19 @@
 const User = require('../models/User')
 const Post = require('../models/Post')
 const Follow = require('../models/Follow')
+const jwt = require('jsonwebtoken')
+
+exports.apiGetPostsByUsername = async function(req, res) {
+    try {
+        // find the user
+        let authorDoc = await User.findByUsername(req.params.username)
+        // find the user posts
+        let posts = await Post.findByAuthorId(authorDoc._id)
+        res.json(posts)
+    } catch {
+        res.json('Sorry, invalid user requested.')
+    }
+}
 
 exports.doesUsernameExist = async function(req, res) {
     try {
@@ -20,7 +33,7 @@ exports.doesEmailExist = async function(req, res) {
     }
 }
 
-function mustBeLoggedIn(req, res, next){
+function mustBeLoggedIn(req, res, next) {
     // If the user session exists
     if(req.session.user) {
         next()
@@ -33,7 +46,17 @@ function mustBeLoggedIn(req, res, next){
     }
 }
 
-async function login(req,res){
+function apiMustBeLoggedIn(req, res, next) {
+    try {
+        // store the api user to grab the user id storage in the jwt user data
+        req.apiUser =  jwt.verify(req.body.token, process.env.JWTSECRET)
+        next()
+    } catch {
+        res.json("Sorry, you must provide a valid token.")
+    }
+}
+
+async function login(req,res) {
     try{
         let user = new User(req.body)
         await user.login()
@@ -45,6 +68,17 @@ async function login(req,res){
         req.flash('errors', error)
         // Redirect to show the flash messages
         req.session.save(() => res.redirect('/'))
+    }
+}
+
+async function apiLogin(req,res){
+    try{
+        let user = new User(req.body)
+        await user.login()
+        // use jasonwebtoken to storage the user data
+        res.json(jwt.sign({_id: user.data._id}, process.env.JWTSECRET, {expiresIn: '7d'}))
+    } catch(error){
+        res.json("Sorry, your values are not correct.")
     }
 }
 
@@ -192,7 +226,9 @@ async function sharedProfileData(req, res, next) {
 }
 
 exports.mustBeLoggedIn = mustBeLoggedIn
+exports.apiMustBeLoggedIn = apiMustBeLoggedIn
 exports.login = login
+exports.apiLogin = apiLogin
 exports.logout = logout
 exports.register = register
 exports.home = home

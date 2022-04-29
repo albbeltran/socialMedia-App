@@ -2,6 +2,8 @@ import axios from 'axios';
 
 export default class RegistrationForm {
     constructor() {
+        // select the csrf token to use it on the axios requests
+        this._csrf = document.querySelector('[name="_csrf"').value
         this.form = document.querySelector('#registration-form');
         this.allFields = document.querySelectorAll('#registration-form .form-control');
         this.insertValidationElements();
@@ -144,7 +146,7 @@ export default class RegistrationForm {
         }
 
         if(!this.username.errors) {
-            axios.post('/doesUsernameExist', {username: this.username.value})
+            axios.post('/doesUsernameExist', {_csrf: this._csrf, username: this.username.value})
             .then((response) => {
                 // if the username exists it will be true
                 if(response.data) {
@@ -168,7 +170,7 @@ export default class RegistrationForm {
 
         // if there are no errors, send the request
         if(!this.email.errors) {
-            axios.post('/doesEmailExist', {email: this.email.value})
+            axios.post('/doesEmailExist', {_csrf: this._csrf, email: this.email.value})
             .then((response) => {
                 // if the email exists it will be true
                 if(response.data) {

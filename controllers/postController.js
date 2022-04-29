@@ -16,6 +16,16 @@ exports.create = async function(req, res) {
     }
 }
 
+exports.apiCreate = async function(req, res) {
+    try {
+        let post = new Post(req.body, req.apiUser._id)
+        await post.create()
+        res.json("Congrats.")
+    } catch(errors) {
+        res.json(errors)
+    }
+}
+
 // view the post
 exports.viewSingle = async function(req, res) {
     try {
@@ -78,6 +88,15 @@ exports.delete = async function(req, res) {
     } catch {
         req.flash('errors', 'You do not have permission to perform that action.')
         req.session.save(() => res.redirect('/'))
+    }
+}
+
+exports.apiDelete = async function(req, res) {
+    try{
+        await Post.delete(req.params.id, req.apiUser._id)
+        res.json('Success')
+    } catch {
+        res.json('You do not have to perform that action.')
     }
 }
 

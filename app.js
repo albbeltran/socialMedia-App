@@ -4,8 +4,15 @@ const MongoStore = require('connect-mongo')
 const flash = require('connect-flash')
 const markdown = require('marked')
 const sanitizeHTML = require('sanitize-html')
-
+const CSRF = require('csurf')
 const app = express()
+
+app.use(express.urlencoded({extended:false}))
+app.use(express.json())
+
+// set up a separate route for the API requests
+// we declare it before all the other data because we do not need that data to test our APIs
+app.use('/api', require('./router-api'))
 
 let sessionOptions = session({
     secret: process.env.SESSIONSECRET,
@@ -42,14 +49,32 @@ app.use(function(req, res, next) {
 
 const router = require('./router')
 
-app.use(express.urlencoded({extended:false}))
-app.use(express.json())
-
 app.use(express.static('public'))
 app.set('view engine','ejs')
 // app.set('views','views')
 
+// enable a csrf token to the requests
+app.use(CSRF())
+
+// set a middleware to use the csrf token 
+app.use(function(req, res, next){
+    // set a csrf token for all views through the csrf() token method
+    res.locals.csrfToken = req.csrfToken()
+    next()
+})
+
 app.use('/', router)
+
+app.use(function(err, req, res, next) {
+    if(err) {
+        if(err.code == 'EBADCSRFTOKEN') {
+            req.flash('errors', 'Cross site request forgery detected.')
+            req.session.save(() => res.redirect('/'))
+        } else {
+            res.render('404')
+        }
+    }
+})
 
 // Create a server with the app as it handler to leverage the sockets
 const server = require('http').createServer(app)
